@@ -106,6 +106,12 @@ const Home: React.FC = () => {
 
         {/* 右侧贴文列表 */}
         <div style={styles.right}>
+          <button
+            style={styles.favoritesButton}
+            onClick={() => navigate("/favorites")}
+          >
+            已收藏
+          </button>
           {!selectedUserId && (
             <div style={styles.placeholder}>请选择左侧用户</div>
           )}
@@ -166,9 +172,11 @@ const styles: Record<string, React.CSSProperties> = {
   right: {
     flex: 2,
     padding: "24px",
+    paddingTop: "72px",
     boxSizing: "border-box",
     backgroundColor: "#ffffff",
     overflowY: "auto",
+    position: "relative",
   },
   searchInput: {
     width: "100%",
@@ -230,9 +238,9 @@ const styles: Record<string, React.CSSProperties> = {
   } as React.CSSProperties,
   favoriteButtonActive: {
     padding: "6px 12px",
-    backgroundColor: "#ff4d4f",
+    backgroundColor: "#1890ff",
     color: "#fff",
-    border: "1px solid #ff4d4f",
+    border: "1px solid #1890ff",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "14px",
@@ -247,6 +255,22 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: "14px",
     transition: "all 0.3s",
+  } as React.CSSProperties,
+  favoritesButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    padding: "8px 14px",
+    background: "linear-gradient(90deg,#ff7a45 0%,#ff4d4f 100%)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "20px",
+    boxShadow: "0 6px 18px rgba(255,77,79,0.18)",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 600,
+    transition: "transform 0.12s ease, box-shadow 0.12s ease",
   } as React.CSSProperties,
 };
 export default Home;
