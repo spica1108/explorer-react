@@ -74,9 +74,6 @@ const Home: React.FC = () => {
     selectedUserId ? post.userId === selectedUserId : true,
   );
 
-  const goDetail = (postId: number) => {
-    alert(`跳转到贴文详情页，贴文ID：${postId}`);
-  };
   return (
     <>
       <div style={styles.container}>
@@ -133,10 +130,9 @@ const Home: React.FC = () => {
                     >
                       {post.isFavorite ? "已收藏" : "收藏"}
                     </button>
-
                     <button
-                      onClick={() => goDetail(post.id)}
                       style={styles.detailButton}
+                      onClick={() => navigate(`/detail/${post.id}`)}
                     >
                       查看详情
                     </button>
