@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -13,34 +14,11 @@ interface Post {
   isFavorite?: boolean;
 }
 
-const users: User[] = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-  { id: 3, name: "Charlie" },
-];
-
 const Home: React.FC = () => {
-  const [allPosts, setAllPosts] = useState<Post[]>([
-    {
-      id: 1,
-      userId: 1,
-      name: "Hello World",
-      content: "This is my first post!",
-    },
-    {
-      id: 2,
-      userId: 2,
-      name: "My Second Post",
-      content: "Learning React is fun.",
-    },
-    {
-      id: 3,
-      userId: 3,
-      name: "React is Awesome",
-      content: "React is a powerful library for building user interfaces.",
-    },
-  ]);
+  const navigate = useNavigate();
 
+  const [users, setUsers] = useState<User[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
@@ -52,25 +30,47 @@ const Home: React.FC = () => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchTerm]);
+
+  //获取用户
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((response) => response.json())
+      .then((data) => setUsers(data))
+      .catch((error) => console.error("Error fetching users:", error));
+  }, []);
+
+  //获取贴文
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/posts")
+      .then((response) => response.json())
+      .then((data) =>
+        setPosts(
+          data.map((p: any) => ({
+            id: p.id,
+            userId: p.userId,
+            name: p.title,
+            content: p.body,
+          })),
+        ),
+      )
+      .catch((error) => console.error("Error fetching posts:", error));
+  }, []);
 
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
 
   const toggleFavorite = (postId: number) => {
-    setAllPosts((prevPosts) =>
+    setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post,
       ),
     );
   };
 
-  const currentPosts = allPosts.filter((post) =>
+  const currentPosts = posts.filter((post) =>
     selectedUserId ? post.userId === selectedUserId : true,
   );
 

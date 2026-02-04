@@ -1,7 +1,8 @@
+//定义路由
 import { Routes, Route } from "react-router-dom";
 import Home from "./views/Home.tsx";
 import Detail from "./views/Detail.tsx";
-import Star from "./views/star.tsx";
+import Star from "./views/Star.tsx";
 
 function App() {
   return (
