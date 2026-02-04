@@ -11,7 +11,7 @@ interface Post {
   userId: number;
   name: string;
   content: string;
-  isFavorite?: boolean;
+  isStar?: boolean;
 }
 
 const Home: React.FC = () => {
@@ -62,10 +62,10 @@ const Home: React.FC = () => {
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
 
-  const toggleFavorite = (postId: number) => {
+  const togglestar = (postId: number) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post,
+        post.id === postId ? { ...post, isStar: !post.isStar } : post,
       ),
     );
   };
@@ -106,10 +106,7 @@ const Home: React.FC = () => {
 
         {/* 右侧贴文列表 */}
         <div style={styles.right}>
-          <button
-            style={styles.favoritesButton}
-            onClick={() => navigate("/favorites")}
-          >
+          <button style={styles.starsButton} onClick={() => navigate("/stars")}>
             已收藏
           </button>
           {!selectedUserId && (
@@ -127,14 +124,14 @@ const Home: React.FC = () => {
                     style={{ display: "flex", gap: "8px", marginTop: "12px" }}
                   >
                     <button
-                      onClick={() => toggleFavorite(post.id)}
+                      onClick={() => togglestar(post.id)}
                       style={
-                        post.isFavorite
-                          ? styles.favoriteButtonActive
-                          : styles.favoriteButton
+                        post.isStar
+                          ? styles.starButtonActive
+                          : styles.starButton
                       }
                     >
-                      {post.isFavorite ? "已收藏" : "收藏"}
+                      {post.isStar ? "已收藏" : "收藏"}
                     </button>
                     <button
                       style={styles.detailButton}
@@ -226,7 +223,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#999",
     fontSize: "16px",
   } as React.CSSProperties,
-  favoriteButton: {
+  starButton: {
     padding: "6px 12px",
     backgroundColor: "#fafafa",
     color: "#333",
@@ -236,7 +233,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     transition: "all 0.3s",
   } as React.CSSProperties,
-  favoriteButtonActive: {
+  starButtonActive: {
     padding: "6px 12px",
     backgroundColor: "#1890ff",
     color: "#fff",
@@ -256,7 +253,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     transition: "all 0.3s",
   } as React.CSSProperties,
-  favoritesButton: {
+  starsButton: {
     position: "absolute",
     top: 16,
     right: 16,
