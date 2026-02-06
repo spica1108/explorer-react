@@ -10,12 +10,12 @@ const router = createBrowserRouter([
     element: <Users />,
     children: [
       {
-        path: "posts/:userId",
-        element: <Posts />,
+        path: "posts",
+        element: <div>请选择左侧用户</div>,
       },
       {
-        path: "posts",
-        element: <div>请在左侧选择一个用户</div>,
+        path: "posts/:userId",
+        element: <Posts />,
       },
     ],
   },

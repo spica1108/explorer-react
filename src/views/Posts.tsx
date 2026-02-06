@@ -63,14 +63,14 @@ const Posts: React.FC = () => {
     return <div>出错了: {(error as Error).message}</div>;
   }
 
-  const currentPosts = posts
-    .filter((post: Post) =>
-      selectedUserId ? post.userId === selectedUserId : false,
-    )
-    .map((post: Post) => ({
-      ...post,
-      isStar: starred[post.id] || false,
-    }));
+  const currentPosts = selectedUserId
+    ? posts
+        .filter((post: Post) => post.userId === selectedUserId)
+        .map((post: Post) => ({
+          ...post,
+          isStar: starred[post.id] || false,
+        }))
+    : [];
 
   return (
     <>
@@ -87,8 +87,14 @@ const Posts: React.FC = () => {
               {currentPosts.length === 0 ? (
                 <div style={styles.placeholder}>该用户暂无贴文</div>
               ) : (
-                currentPosts.map((post: Post) => (
-                  <div key={post.id} style={styles.postitem}>
+                currentPosts.map((post: Post, idx: number) => (
+                  <div
+                    key={post.id}
+                    style={{
+                      ...styles.postitem,
+                      marginTop: idx === 0 ? "0px" : undefined,
+                    }}
+                  >
                     <h3>{post.name}</h3>
                     <p>{post.content}</p>
                     <div
@@ -130,14 +136,6 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: "border-box",
     backgroundColor: "#f5f5f5",
   },
-  left: {
-    flex: 1,
-    borderRight: "1px solid #e0e0e0",
-    padding: "24px",
-    boxSizing: "border-box",
-    backgroundColor: "#ffffff",
-    overflowY: "auto",
-  },
   right: {
     flex: 2,
     padding: "24px",
@@ -158,28 +156,6 @@ const styles: Record<string, React.CSSProperties> = {
     outline: "none",
     transition: "border-color 0.3s",
   } as React.CSSProperties,
-  userItem: {
-    padding: "12px 16px",
-    marginBottom: "8px",
-    borderRadius: "6px",
-    transition: "all 0.3s ease",
-    backgroundColor: "#f9f9f9",
-    color: "#333",
-    fontWeight: "normal",
-    cursor: "pointer",
-    border: "1px solid #f0f0f0",
-  },
-  userItemActive: {
-    padding: "12px 16px",
-    marginBottom: "8px",
-    borderRadius: "6px",
-    transition: "all 0.3s ease",
-    backgroundColor: "#1890ff",
-    color: "#fff",
-    fontWeight: "500",
-    cursor: "pointer",
-    border: "1px solid #1890ff",
-  },
   postitem: {
     padding: "16px",
     marginBottom: "16px",
@@ -226,19 +202,19 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "all 0.3s",
   } as React.CSSProperties,
   starsButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    padding: "8px 14px",
-    background: "linear-gradient(90deg,#ff7a45 0%,#ff4d4f 100%)",
+    position: "fixed",
+    top: "24px",
+    right: "32px",
+    zIndex: 999,
+    padding: "12px 24px",
+    backgroundColor: "#1890ff",
     color: "#fff",
     border: "none",
-    borderRadius: "20px",
-    boxShadow: "0 6px 18px rgba(255,77,79,0.18)",
+    borderRadius: "24px",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
+    fontSize: "16px",
+    fontWeight: 700,
+    letterSpacing: "1px",
     transition: "transform 0.12s ease, box-shadow 0.12s ease",
   } as React.CSSProperties,
 };
