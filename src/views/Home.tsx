@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -15,10 +15,16 @@ interface Post {
   isStar?: boolean;
 }
 
+interface PostData {
+  id: number;
+  userId: number;
+  title: string;
+  body: string;
+}
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
@@ -52,36 +58,43 @@ const Home: React.FC = () => {
     },
   });
 
-  //获取贴文
-  useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/posts")
-      .then((response) => response.json())
-      .then((data) =>
-        setPosts(
-          data.map((p: any) => ({
-            id: p.id,
-            userId: p.userId,
-            name: p.title,
-            content: p.body,
-          })),
-        ),
-      )
-      .catch((error) => console.error("Error fetching posts:", error));
-  }, []);
+  const { data: posts = [] } = useQuery({
+    queryKey: ["posts"],
+    queryFn: async () => {
+      const response = await fetch(
+        "https://jsonplaceholder.typicode.com/posts",
+      );
+      if (!response.ok) {
+        throw new Error("网络请求错误");
+      }
+      const data = await response.json();
+      return data.map((p: PostData) => ({
+        id: p.id,
+        userId: p.userId,
+        name: p.title,
+        content: p.body,
+      }));
+    },
+  });
 
-  const filteredUsers = users.filter((user) =>
+  const filteredUsers = users.filter((user: User) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
 
   const togglestar = (postId: number) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, isStar: !post.isStar } : post,
-      ),
-    );
+    console.log("收藏帖子:", postId);
   };
 
-  const currentPosts = posts.filter((post) =>
+  // 加载和错误状态检查
+  if (isLoading) {
+    return <div>加载中...</div>;
+  }
+
+  if (error) {
+    return <div>出错了: {(error as Error).message}</div>;
+  }
+
+  const currentPosts = posts.filter((post: Post) =>
     selectedUserId ? post.userId === selectedUserId : true,
   );
 
@@ -99,7 +112,7 @@ const Home: React.FC = () => {
           />
 
           <div>
-            {filteredUsers.map((users) => (
+            {filteredUsers.map((users: User) => (
               <div
                 key={users.id}
                 onClick={() => setSelectedUserId(users.id)}
@@ -126,7 +139,7 @@ const Home: React.FC = () => {
           {selectedUserId && (
             <div>
               {/* <h2>贴文列表</h2> */}
-              {currentPosts.map((post) => (
+              {currentPosts.map((post: Post) => (
                 <div key={post.id} style={styles.postitem}>
                   <h3>{post.name}</h3>
                   <p>{post.content}</p>
