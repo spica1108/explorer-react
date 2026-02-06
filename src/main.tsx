@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+//让路由生效
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import router from "./router/index";

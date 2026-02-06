@@ -20,6 +20,8 @@ interface PostData {
 const Posts: React.FC = () => {
   const navigate = useNavigate();
 
+  //可以通过 useParams() 获取到 URL 中的 userId
+  //如果访问的 URL 是 /users/123，那么 userId 将会是 "123"
   const { userId } = useParams();
   const selectedUserId = userId ? parseInt(userId, 10) : null;
 

@@ -2,6 +2,7 @@ import Users from "../views/Users";
 import Posts from "../views/Posts";
 import Detail from "../views/Detail";
 import Star from "../views/Star";
+//定义路由
 import { createBrowserRouter } from "react-router-dom";
 
 const router = createBrowserRouter([
@@ -10,10 +11,11 @@ const router = createBrowserRouter([
     element: <Users />,
     children: [
       {
-        path: "posts",
+        path: "/",
         element: <div>请选择左侧用户</div>,
       },
       {
+        //动态路由，匹配路径/posts/1、/posts/2等
         path: "posts/:userId",
         element: <Posts />,
       },

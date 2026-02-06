@@ -12,6 +12,7 @@ const Users: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
+  //选中用户的ID状态
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
     null,
   );
@@ -73,9 +74,10 @@ const Users: React.FC = () => {
             {filteredUsers.map((users: User) => (
               <div
                 key={users.id}
+                //点击用户时，设置选中状态并导航到对应的贴文列表
                 onClick={() => {
                   setSelectedUserId(users.id);
-                    navigate(`posts/${users.id}`);
+                  navigate(`posts/${users.id}`);
                 }}
                 style={
                   selectedUserId === users.id
@@ -91,6 +93,7 @@ const Users: React.FC = () => {
 
         {/* 右侧内容区域 */}
         <div style={styles.right}>
+          {/* <Outlet /> 用于渲染匹配的子路由内容 */}
           <Outlet />
         </div>
       </div>
