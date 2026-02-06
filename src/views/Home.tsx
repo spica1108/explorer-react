@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 interface User {
   id: number;
@@ -34,12 +35,32 @@ const Home: React.FC = () => {
   }, [searchTerm]);
 
   //获取用户
+  // useEffect(() => {
+  //   fetch("https://jsonplaceholder.typicode.com/users")
+  //     .then((response) => response.json())
+  //     .then((data) => setUsers(data))
+  //     .catch((error) => console.error("Error fetching users:", error));
+  // }, []);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const response = await fetch(
+        "https://jsonplaceholder.typicode.com/users",
+      );
+      if (!response.ok) {
+        throw new Error("网络请求错误");
+      }
+      return response.json();
+    },
+  });
+  //数据更新到状态
   useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((response) => response.json())
-      .then((data) => setUsers(data))
-      .catch((error) => console.error("Error fetching users:", error));
-  }, []);
+    if (data) {
+      setUsers(data);
+    }
+  }, [data]);
+
+  //使用react-query获取用户数据
 
   //获取贴文
   useEffect(() => {
