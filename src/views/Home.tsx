@@ -18,7 +18,6 @@ interface Post {
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
@@ -34,14 +33,13 @@ const Home: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  //获取用户
-  // useEffect(() => {
-  //   fetch("https://jsonplaceholder.typicode.com/users")
-  //     .then((response) => response.json())
-  //     .then((data) => setUsers(data))
-  //     .catch((error) => console.error("Error fetching users:", error));
-  // }, []);
-  const { data, isLoading, error } = useQuery({
+  //获取用户列表
+  const {
+    //把data属性取出，用users来接收，并设置默认值为空数组
+    data: users = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const response = await fetch(
@@ -53,14 +51,6 @@ const Home: React.FC = () => {
       return response.json();
     },
   });
-  //数据更新到状态
-  useEffect(() => {
-    if (data) {
-      setUsers(data);
-    }
-  }, [data]);
-
-  //使用react-query获取用户数据
 
   //获取贴文
   useEffect(() => {
