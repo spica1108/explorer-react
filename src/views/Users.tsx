@@ -1,37 +1,131 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const useAddPost = () => {
+  const queryClient = useQueryClient();
+
+  const addUserMutation = useMutation({
+    mutationFn: async (newPost: {
+      name: string;
+      title: string;
+      body: string;
+    }) => {
+      const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+        method: "POST",
+        body: JSON.stringify(newPost),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      });
+      if (!res.ok) throw new Error("创建用户失败");
+      return res.json();
+    },
+    onSuccess: (newUser) => {
+      //setQueryData更新缓存
+      queryClient.setQueryData(["users"], (oldUsers: User[] | undefined) => [
+        ...(oldUsers || []),
+        { id: newUser.id, name: newUser.name },
+      ]);
+    },
+    onError: (error: Error) => {
+      console.error("失败:", error.message);
+    },
+  });
+
+  return addUserMutation;
+};
+
+const AddPostDialog = () => {
+  const [newUserName, setNewUserName] = useState("");
+  const [postTitle, setPostTitle] = useState("");
+  const [postBody, setPostBody] = useState("");
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const mutation = useAddPost();
+
+  // 提交新用户的表单处理
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutation.mutate({
+      name: newUserName,
+      title: postTitle,
+      body: postBody,
+    });
+  };
+
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary">新增用户</Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>新增贴文</DialogTitle>
+          <DialogDescription>请输入</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleAddUser} className="space-y-4 pt-4">
+          <Input
+            placeholder="请输入用户名"
+            value={newUserName}
+            onChange={(e) => setNewUserName(e.target.value)}
+            required
+          />
+
+          <Input
+            placeholder="请输入标题"
+            value={postTitle}
+            onChange={(e) => setPostTitle(e.target.value)}
+            required
+          />
+
+          <Input
+            placeholder="请输入内容"
+            value={postBody}
+            onChange={(e) => setPostBody(e.target.value)}
+            required
+          />
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsDialogOpen(false)}
+            >
+              取消
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "提交中..." : "提交"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 interface User {
   id: number;
   name: string;
 }
 
-const Users: React.FC = () => {
-  const navigate = useNavigate();
-
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
-  //选中用户的ID状态
-  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
-    null,
-  );
-
-  //防抖函数
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
+const useUsers = () => {
   //获取用户列表
-  const {
-    //把data属性取出，用users来接收，并设置默认值为空数组
-    data: users = [],
-    isLoading,
-    error,
-  } = useQuery({
+  return useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const response = await fetch(
@@ -43,6 +137,26 @@ const Users: React.FC = () => {
       return response.json();
     },
   });
+};
+
+const Users: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    null,
+  );
+
+  // 防抖逻辑
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  const { data: users = [], isLoading, error } = useUsers();
 
   const filteredUsers = users.filter((user: User) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
@@ -58,167 +172,47 @@ const Users: React.FC = () => {
   }
 
   return (
-    <>
-      <div style={styles.container}>
-        {/* 左侧用户列表 */}
-        <div style={styles.left}>
-          <h2>用户搜索</h2>
-          <input
-            type="text"
-            placeholder="搜索用户..."
-            style={styles.searchInput}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+    //宽度高度占满整个屏幕
+    <div className="relative flex h-screen w-screen">
+      <div className="flex-1 border-r p-6">
+        <h2 className="text-xl font-bold mb-4">用户搜索</h2>
+        <Input
+          placeholder="搜索用户..."
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4"
+        />
 
-          <div>
-            {filteredUsers.map((users: User) => (
-              <div
-                key={users.id}
-                //点击用户时，设置选中状态并导航到对应的贴文列表
-                onClick={() => {
-                  setSelectedUserId(users.id);
-                  navigate(`posts/${users.id}`);
-                }}
-                style={
-                  selectedUserId === users.id
-                    ? styles.userItemActive
-                    : styles.userItem
-                }
-              >
-                {users.name}
-              </div>
-            ))}
+        <div className="space-y-2">
+          {filteredUsers.map((users: User) => (
+            <Button
+              key={users.id}
+              variant={selectedUserId === users.id ? "default" : "outline"}
+              // w-full让按钮宽度撑满左侧，justify-start让文字靠左对齐
+              className="w-full justify-start"
+              onClick={() => {
+                setSelectedUserId(users.id);
+                navigate(`posts/${users.id}`);
+              }}
+            >
+              {users.name}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-[2] p-6 relative">
+        <div className="flex-[2] p-6 relative">
+          <div className="flex justify-end gap-2 mb-4">
+            <Button onClick={() => navigate("/stars")}>我的收藏</Button>
+
+            <AddPostDialog />
           </div>
         </div>
 
-        {/* 右侧内容区域 */}
-        <div style={styles.right}>
-          {/* <Outlet /> 用于渲染匹配的子路由内容 */}
-          <Outlet />
-        </div>
+        <Outlet />
       </div>
-    </>
+    </div>
   );
 };
 
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: "flex",
-    height: "100vh",
-    width: "100vw",
-    boxSizing: "border-box",
-    backgroundColor: "#f5f5f5",
-  },
-  left: {
-    flex: 1,
-    borderRight: "1px solid #e0e0e0",
-    padding: "24px",
-    boxSizing: "border-box",
-    backgroundColor: "#ffffff",
-    overflowY: "auto",
-  },
-  right: {
-    flex: 2,
-    padding: "24px",
-    paddingTop: "72px",
-    boxSizing: "border-box",
-    backgroundColor: "#ffffff",
-    overflowY: "auto",
-    position: "relative",
-  },
-  searchInput: {
-    width: "100%",
-    padding: "10px 12px",
-    marginBottom: "16px",
-    border: "1px solid #d9d9d9",
-    borderRadius: "6px",
-    fontSize: "14px",
-    boxSizing: "border-box",
-    outline: "none",
-    transition: "border-color 0.3s",
-  } as React.CSSProperties,
-  userItem: {
-    padding: "12px 16px",
-    marginBottom: "8px",
-    borderRadius: "6px",
-    transition: "all 0.3s ease",
-    backgroundColor: "#f9f9f9",
-    color: "#333",
-    fontWeight: "normal",
-    cursor: "pointer",
-    border: "1px solid #f0f0f0",
-  },
-  userItemActive: {
-    padding: "12px 16px",
-    marginBottom: "8px",
-    borderRadius: "6px",
-    transition: "all 0.3s ease",
-    backgroundColor: "#1890ff",
-    color: "#fff",
-    fontWeight: "500",
-    cursor: "pointer",
-    border: "1px solid #1890ff",
-  },
-  postitem: {
-    padding: "16px",
-    marginBottom: "16px",
-    borderRadius: "8px",
-    backgroundColor: "#fafafa",
-    border: "1px solid #f0f0f0",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-    transition: "all 0.3s ease",
-  },
-  placeholder: {
-    padding: "40px 20px",
-    textAlign: "center",
-    color: "#999",
-    fontSize: "16px",
-  } as React.CSSProperties,
-  starButton: {
-    padding: "6px 12px",
-    backgroundColor: "#fafafa",
-    color: "#333",
-    border: "1px solid #d9d9d9",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "14px",
-    transition: "all 0.3s",
-  } as React.CSSProperties,
-  starButtonActive: {
-    padding: "6px 12px",
-    backgroundColor: "#1890ff",
-    color: "#fff",
-    border: "1px solid #1890ff",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "14px",
-    transition: "all 0.3s",
-  } as React.CSSProperties,
-  detailButton: {
-    padding: "6px 12px",
-    backgroundColor: "#1890ff",
-    color: "#fff",
-    border: "1px solid #1890ff",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "14px",
-    transition: "all 0.3s",
-  } as React.CSSProperties,
-  starsButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    padding: "8px 14px",
-    background: "linear-gradient(90deg,#ff7a45 0%,#ff4d4f 100%)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "20px",
-    boxShadow: "0 6px 18px rgba(255,77,79,0.18)",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
-    transition: "transform 0.12s ease, box-shadow 0.12s ease",
-  } as React.CSSProperties,
-};
 export default Users;
