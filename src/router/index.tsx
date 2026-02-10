@@ -10,7 +10,6 @@ const App = () => {
       <Route path="/" component={Users} />
       <Route path="/users" component={Users} />
       <Route path="/posts/:userId" component={Posts} />
-
       <Route path="/detail/:id" component={Detail} />
       <Route path="/stars" component={Star} />
     </Switch>

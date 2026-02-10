@@ -1,12 +1,7 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-
-interface Post {
-  id: number;
-  userId: number;
-  title: string;
-  body: string;
-}
+import { useRoute, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 interface Comment {
   id: string;
@@ -16,130 +11,98 @@ interface Comment {
 }
 
 const Detail: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const [match, params] = useRoute("/detail/:id");
+  const [, setLocation] = useLocation();
 
-  const [post, setPost] = React.useState<Post | null>(null);
-  const [comments, setComments] = React.useState<Comment[]>([]);
+  const id = match ? params!.id : null;
 
-  React.useEffect(() => {
-    if (id) {
-      fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
-        .then((response) => response.json())
-        .then((data) => setPost(data))
-        .catch((error) => console.error("Error fetching post:", error));
+  const { data: post, isLoading: postLoading } = useQuery({
+    queryKey: ["post", id],
+    queryFn: async () => {
+      const response = await fetch(
+        `https://jsonplaceholder.typicode.com/posts/${id}`,
+      );
+      if (!response.ok) {
+        throw new Error("网络请求错误");
+      }
+      return response.json();
+    },
+    enabled: !!id,
+  });
 
-      fetch(`https://jsonplaceholder.typicode.com/posts/${id}/comments`)
-        .then((response) => response.json())
-        .then((data) => setComments(data))
-        .catch((error) => console.error("Error fetching comments:", error));
-    }
-  }, [id]);
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ["comments", id],
+    queryFn: async () => {
+      const response = await fetch(
+        `https://jsonplaceholder.typicode.com/posts/${id}/comments`,
+      );
+      if (!response.ok) {
+        throw new Error("网络请求错误");
+      }
+      return response.json();
+    },
+    enabled: !!id,
+  });
+
+  if (postLoading || commentsLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-muted-foreground">
+        加载中...
+      </div>
+    );
+  }
 
   if (!post) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen text-destructive">
+        贴文不存在
+      </div>
+    );
   }
 
   return (
-    <div style={styles.container}>
-      <button onClick={() => navigate("/")} style={styles.backButton}>
-        ← 返回首页
-      </button>
-
-      <div style={styles.postContainer}>
-        <h2 style={styles.title}>{post.title}</h2>
-        <p style={styles.body}>{post.body}</p>
+    <div className="max-w-4xl mx-auto p-6 bg-background min-h-screen">
+      <div className="mb-6">
+        <Button variant="outline" size="sm" onClick={() => setLocation("/")}>
+          ← 返回首页
+        </Button>
       </div>
 
-      <div style={styles.commentsContainer}>
-        <h3 style={styles.commentsTitle}>评论</h3>
-        <ul style={styles.commentsList}>
-          {comments.map((comment) => (
-            <li key={comment.id} style={styles.commentItem}>
-              <h4 style={styles.commentTitle}>{comment.title}</h4>
-              <p style={styles.commentBody}>{comment.body}</p>
-            </li>
-          ))}
-        </ul>
+      <div className="bg-card p-6 rounded-lg shadow-sm mb-6">
+        <h2 className="text-2xl font-semibold mb-4 text-foreground">
+          {post.title}
+        </h2>
+        <p className="text-base text-muted-foreground leading-relaxed">
+          {post.body}
+        </p>
+      </div>
+
+      <div className="bg-card p-6 rounded-lg shadow-sm">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">评论</h3>
+        <div className="space-y-4">
+          {comments.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              暂无评论
+            </div>
+          ) : (
+            comments.map((comment: Comment) => (
+              <div
+                key={comment.id}
+                className="bg-muted/50 p-4 rounded-md border border-border"
+              >
+                <h4 className="text-sm font-semibold mb-2 text-foreground">
+                  {comment.title}
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {comment.body}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    maxWidth: "900px",
-    margin: "0 auto",
-    padding: "24px",
-    backgroundColor: "#f5f5f5",
-    minHeight: "100vh",
-  },
-  backButton: {
-    padding: "8px 16px",
-    marginBottom: "24px",
-    backgroundColor: "#1890ff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontSize: "14px",
-    transition: "background-color 0.3s",
-  } as React.CSSProperties,
-  postContainer: {
-    backgroundColor: "#fff",
-    padding: "24px",
-    borderRadius: "8px",
-    marginBottom: "24px",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "600",
-    marginBottom: "16px",
-    color: "#333",
-  } as React.CSSProperties,
-  body: {
-    fontSize: "16px",
-    lineHeight: "1.6",
-    color: "#666",
-  } as React.CSSProperties,
-  commentsContainer: {
-    backgroundColor: "#fff",
-    padding: "24px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  },
-  commentsTitle: {
-    fontSize: "18px",
-    fontWeight: "600",
-    marginBottom: "16px",
-    color: "#333",
-  } as React.CSSProperties,
-  commentsList: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  } as React.CSSProperties,
-  commentItem: {
-    padding: "16px",
-    marginBottom: "12px",
-    backgroundColor: "#fafafa",
-    borderRadius: "6px",
-    border: "1px solid #f0f0f0",
-    transition: "all 0.3s",
-  } as React.CSSProperties,
-  commentTitle: {
-    fontSize: "14px",
-    fontWeight: "600",
-    marginBottom: "8px",
-    color: "#1890ff",
-  } as React.CSSProperties,
-  commentBody: {
-    fontSize: "14px",
-    lineHeight: "1.5",
-    color: "#666",
-    margin: 0,
-  } as React.CSSProperties,
 };
 
 export default Detail;

@@ -19,6 +19,7 @@ interface PostData {
 }
 
 interface PostsProps {
+  //接收父组件传递的userId
   userId: number;
 }
 

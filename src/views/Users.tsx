@@ -194,7 +194,7 @@ const Users: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-2 p-6 relative">
+      <div className="flex-[2] p-6 relative">
         <div className=" p-6 relative">
           <div className="flex justify-end gap-3 mb-4">
             <Button onClick={() => setSelectedUserId(users.id)}>
@@ -203,7 +203,8 @@ const Users: React.FC = () => {
 
             <AddPostDialog />
           </div>
-          {/* 当前存储的值，点击了ID为5的用户，存的就是5 */}
+          {/* 当前存储的值，点击了ID为5的用户，存的就是5
+          通过 props 传递给子组件 */}
           {selectedUserId ? (
             <Posts userId={selectedUserId} />
           ) : (
