@@ -173,7 +173,7 @@ const Users: React.FC = () => {
 
   return (
     //宽度高度占满整个屏幕
-    <div className="relative flex h-screen w-screen">
+    <div className="relative flex">
       <div className="flex-1 border-r p-6">
         <h2 className="text-xl font-bold mb-4">用户搜索</h2>
         <Input
@@ -200,9 +200,9 @@ const Users: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-[2] p-6 relative">
-        <div className="flex-[2] p-6 relative">
-          <div className="flex justify-end gap-2 mb-4">
+      <div className="flex-2 p-6 relative">
+        <div className=" p-6 relative">
+          <div className="flex justify-end gap-3 mb-4">
             <Button onClick={() => navigate("/stars")}>我的收藏</Button>
 
             <AddPostDialog />

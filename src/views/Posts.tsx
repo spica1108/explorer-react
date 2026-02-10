@@ -54,19 +54,11 @@ const Posts: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen text-muted-foreground">
-        加载中...
-      </div>
-    );
+    return <div>加载中...</div>;
   }
 
   if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen text-destructive">
-        出错了: {(error as Error).message}
-      </div>
-    );
+    return <div>出错了: {(error as Error).message}</div>;
   }
 
   const currentPosts = selectedUserId
@@ -85,25 +77,14 @@ const Posts: React.FC = () => {
       </div> */}
 
       {!selectedUserId ? (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-          请选择左侧用户
-        </div>
+        <div>请选择左侧用户</div>
       ) : currentPosts.length === 0 ? (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-          该用户暂无贴文
-        </div>
+        <div>该用户暂无贴文</div>
       ) : (
         currentPosts.map((post: Post) => (
-          <div
-            key={post.id}
-            className="p-6 rounded-lg border border-border bg-card shadow-sm"
-          >
-            <h3 className="text-lg font-semibold mb-3 text-foreground">
-              {post.name}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-              {post.content}
-            </p>
+          <div key={post.id} className="p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-3">{post.name}</h3>
+            <p className="text-sm text-muted-foreground mb-4">{post.content}</p>
             <div className="flex gap-2">
               <Button
                 variant={post.isStar ? "default" : "outline"}
