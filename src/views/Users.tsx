@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import Posts from "./Posts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -140,8 +139,6 @@ const useUsers = () => {
 };
 
 const Users: React.FC = () => {
-  const navigate = useNavigate();
-
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
@@ -172,7 +169,6 @@ const Users: React.FC = () => {
   }
 
   return (
-    //宽度高度占满整个屏幕
     <div className="relative flex">
       <div className="flex-1 border-r p-6">
         <h2 className="text-xl font-bold mb-4">用户搜索</h2>
@@ -187,11 +183,9 @@ const Users: React.FC = () => {
             <Button
               key={users.id}
               variant={selectedUserId === users.id ? "default" : "outline"}
-              // w-full让按钮宽度撑满左侧，justify-start让文字靠左对齐
-              className="w-full justify-start"
+              className="w-full justify-start text-lg mb-3"
               onClick={() => {
                 setSelectedUserId(users.id);
-                navigate(`posts/${users.id}`);
               }}
             >
               {users.name}
@@ -203,13 +197,19 @@ const Users: React.FC = () => {
       <div className="flex-2 p-6 relative">
         <div className=" p-6 relative">
           <div className="flex justify-end gap-3 mb-4">
-            <Button onClick={() => navigate("/stars")}>我的收藏</Button>
+            <Button onClick={() => setSelectedUserId(users.id)}>
+              我的收藏
+            </Button>
 
             <AddPostDialog />
           </div>
+          {/* 当前存储的值，点击了ID为5的用户，存的就是5 */}
+          {selectedUserId ? (
+            <Posts userId={selectedUserId} />
+          ) : (
+            <div>请选择左侧用户</div>
+          )}
         </div>
-
-        <Outlet />
       </div>
     </div>
   );

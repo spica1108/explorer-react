@@ -1,8 +1,7 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface Post {
   id: number;
@@ -19,10 +18,12 @@ interface PostData {
   body: string;
 }
 
-const Posts: React.FC = () => {
-  const navigate = useNavigate();
-  const { userId } = useParams();
-  const selectedUserId = userId ? parseInt(userId, 10) : null;
+interface PostsProps {
+  userId: number;
+}
+
+const Posts: React.FC<PostsProps> = ({ userId }) => {
+  const [, setLocation] = useLocation();
 
   const {
     data: posts = [],
@@ -61,49 +62,41 @@ const Posts: React.FC = () => {
     return <div>出错了: {(error as Error).message}</div>;
   }
 
-  const currentPosts = selectedUserId
-    ? posts
-        .filter((post: Post) => post.userId === selectedUserId)
-        .map((post: Post) => ({
-          ...post,
-          isStar: starred[post.id] || false,
-        }))
-    : [];
+  const currentPosts = posts
+    .filter((post: Post) => post.userId === userId)
+    .map((post: Post) => ({
+      ...post,
+      isStar: starred[post.id] || false,
+    }));
+
+  if (currentPosts.length === 0) {
+    return <div>该用户暂无贴文</div>;
+  }
 
   return (
     <div className="space-y-4">
-      {/* <div className="flex justify-end gap-2 mb-4">
-        <Button onClick={() => navigate("/stars")}>我的收藏</Button>
-      </div> */}
-
-      {!selectedUserId ? (
-        <div>请选择左侧用户</div>
-      ) : currentPosts.length === 0 ? (
-        <div>该用户暂无贴文</div>
-      ) : (
-        currentPosts.map((post: Post) => (
-          <div key={post.id} className="p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-3">{post.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{post.content}</p>
-            <div className="flex gap-2">
-              <Button
-                variant={post.isStar ? "default" : "outline"}
-                size="sm"
-                onClick={() => togglestar(post.id)}
-              >
-                {post.isStar ? "已收藏" : "收藏"}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate(`/detail/${post.id}`)}
-              >
-                查看详情
-              </Button>
-            </div>
+      {currentPosts.map((post: Post) => (
+        <div key={post.id} className="p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-3">{post.name}</h3>
+          <p className="text-sm text-muted-foreground mb-4">{post.content}</p>
+          <div className="flex gap-2">
+            <Button
+              variant={post.isStar ? "default" : "outline"}
+              size="sm"
+              onClick={() => togglestar(post.id)}
+            >
+              {post.isStar ? "已收藏" : "收藏"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setLocation(`/detail/${post.id}`)}
+            >
+              查看详情
+            </Button>
           </div>
-        ))
-      )}
+        </div>
+      ))}
     </div>
   );
 };
