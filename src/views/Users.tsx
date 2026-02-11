@@ -108,18 +108,16 @@ const Users: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  //获取用户列表
   const { data: users = [], isPending, error } = useUsers();
 
-  //get请求
   const filteredUsers = users.filter((user: User) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
 
-  // 加载和错误状态检查
   if (isPending) {
     return <div>加载中...</div>;
   }
-
   if (error) {
     return <div>出错了: {(error as Error).message}</div>;
   }

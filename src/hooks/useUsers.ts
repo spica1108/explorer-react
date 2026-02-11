@@ -12,7 +12,11 @@ export const useUsers = () => {
       if (!response.ok) {
         throw new Error("网络请求错误");
       }
-      return response.json() as Promise<User[]>;
+      const data = await response.json();
+      return data.map((p: User) => ({
+        id: p.id,
+        name: p.name,
+      }));
     },
   });
 };
