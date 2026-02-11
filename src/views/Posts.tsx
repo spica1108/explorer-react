@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { usePost } from "@/hooks/usePost";
 
 interface Post {
   id: number;
@@ -11,57 +11,23 @@ interface Post {
   isStar?: boolean;
 }
 
-interface PostData {
-  id: number;
-  userId: number;
-  title: string;
-  body: string;
-}
-
 interface PostsProps {
   //接收父组件传递的userId
   userId: number;
 }
 
-const Posts: React.FC<PostsProps> = ({ userId }) => {
+export const Posts: React.FC<PostsProps> = ({ userId }) => {
   const [, setLocation] = useLocation();
-
-  const {
-    data: posts = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["posts"],
-    queryFn: async () => {
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/posts",
-      );
-      if (!response.ok) {
-        throw new Error("网络请求错误");
-      }
-      const data = await response.json();
-      return data.map((p: PostData) => ({
-        id: p.id,
-        userId: p.userId,
-        name: p.title,
-        content: p.body,
-      }));
-    },
-  });
-
+  //从hook拿数据
+  const { data: posts = [], isLoading, error } = usePost();
   const [starred, setStarred] = React.useState<{ [key: number]: boolean }>({});
 
   const togglestar = (postId: number) => {
     setStarred((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
-  if (isLoading) {
-    return <div>加载中...</div>;
-  }
-
-  if (error) {
-    return <div>出错了: {(error as Error).message}</div>;
-  }
+  if (isLoading) return <div>加载中...</div>;
+  if (error) return <div>加载失败</div>;
 
   const currentPosts = posts
     .filter((post: Post) => post.userId === userId)
@@ -101,5 +67,3 @@ const Posts: React.FC<PostsProps> = ({ userId }) => {
     </div>
   );
 };
-
-export default Posts;

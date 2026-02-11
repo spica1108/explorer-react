@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Posts from "./Posts";
+import { useQuery } from "@tanstack/react-query";
+import { Posts } from "./Posts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,40 +11,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-const useAddPost = () => {
-  const queryClient = useQueryClient();
-
-  const addUserMutation = useMutation({
-    mutationFn: async (newPost: {
-      name: string;
-      title: string;
-      body: string;
-    }) => {
-      const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
-        method: "POST",
-        body: JSON.stringify(newPost),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-      });
-      if (!res.ok) throw new Error("创建用户失败");
-      return res.json();
-    },
-    onSuccess: (newUser) => {
-      //setQueryData更新缓存
-      queryClient.setQueryData(["users"], (oldUsers: User[] | undefined) => [
-        ...(oldUsers || []),
-        { id: newUser.id, name: newUser.name },
-      ]);
-    },
-    onError: (error: Error) => {
-      console.error("失败:", error.message);
-    },
-  });
-
-  return addUserMutation;
-};
+import { useAddPost, type User } from "@/hooks/useAddPost";
 
 const AddPostDialog = () => {
   const [newUserName, setNewUserName] = useState("");
@@ -117,11 +84,6 @@ const AddPostDialog = () => {
   );
 };
 
-interface User {
-  id: number;
-  name: string;
-}
-
 const useUsers = () => {
   //获取用户列表
   return useQuery({
@@ -183,7 +145,7 @@ const Users: React.FC = () => {
             <Button
               key={users.id}
               variant={selectedUserId === users.id ? "default" : "outline"}
-              className="w-full justify-start text-lg mb-3"
+              className="w-full justify-start text-lg font-semibold mb-3"
               onClick={() => {
                 setSelectedUserId(users.id);
               }}
@@ -194,7 +156,7 @@ const Users: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-[2] p-6 relative">
+      <div className="flex-2 p-6 relative">
         <div className=" p-6 relative">
           <div className="flex justify-end gap-3 mb-4">
             <Button onClick={() => setSelectedUserId(users.id)}>
