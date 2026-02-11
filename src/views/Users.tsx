@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Posts } from "./Posts";
+import { useUsers } from "@/hooks/useUsers";
 import { useAddPost } from "@/hooks/useAddPost";
 import type { User } from "@/types";
 import { Input } from "@/components/ui/input";
@@ -17,25 +18,35 @@ const AddPostDialog = () => {
   const [newUserName, setNewUserName] = useState("");
   const [postTitle, setPostTitle] = useState("");
   const [postBody, setPostBody] = useState("");
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  //post请求
   const mutation = useAddPost();
 
   // 提交新用户的表单处理
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddPost = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate({
-      name: newUserName,
-      title: postTitle,
-      body: postBody,
-    });
+    //调用mutate发请求
+    mutation.mutate(
+      {
+        name: newUserName,
+        title: postTitle,
+        body: postBody,
+      },
+      {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setPostBody("");
+          setPostTitle("");
+        },
+      },
+    );
   };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">新增用户</Button>
+        <Button variant="secondary">新增贴文</Button>
       </DialogTrigger>
 
       <DialogContent>
@@ -44,21 +55,19 @@ const AddPostDialog = () => {
           <DialogDescription>请输入</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleAddUser} className="space-y-4 pt-4">
+        <form onSubmit={handleAddPost} className="space-y-4 pt-4">
           <Input
             placeholder="请输入用户名"
             value={newUserName}
             onChange={(e) => setNewUserName(e.target.value)}
             required
           />
-
           <Input
             placeholder="请输入标题"
             value={postTitle}
             onChange={(e) => setPostTitle(e.target.value)}
             required
           />
-
           <Input
             placeholder="请输入内容"
             value={postBody}
@@ -99,8 +108,9 @@ const Users: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const { data: users = [], isPending, error } = useAddPost();
+  const { data: users = [], isPending, error } = useUsers();
 
+  //get请求
   const filteredUsers = users.filter((user: User) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
@@ -129,7 +139,7 @@ const Users: React.FC = () => {
             <Button
               key={users.id}
               variant={selectedUserId === users.id ? "default" : "outline"}
-              className="w-full justify-start text-lg font-semibold mb-3"
+              className="w-full justify-start text-lg mb-3"
               onClick={() => {
                 setSelectedUserId(users.id);
               }}
@@ -143,9 +153,7 @@ const Users: React.FC = () => {
       <div className="flex-2 p-6 relative">
         <div className=" p-6 relative">
           <div className="flex justify-end gap-3 mb-4">
-            <Button onClick={() => setSelectedUserId(users.id)}>
-              我的收藏
-            </Button>
+            <Button onClick={() => setSelectedUserId(1)}>我的收藏</Button>
 
             <AddPostDialog />
           </div>

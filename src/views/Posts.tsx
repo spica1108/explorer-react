@@ -6,7 +6,7 @@ import type { Post, PostsProps } from "@/types/post";
 
 export const Posts: React.FC<PostsProps> = ({ userId }) => {
   const [, setLocation] = useLocation();
-  //从hook拿数据
+  //从hook拿数据,data重命名为posts
   const { data: posts = [], isLoading, error } = usePost();
   const [starred, setStarred] = React.useState<{ [key: number]: boolean }>({});
 
@@ -17,6 +17,7 @@ export const Posts: React.FC<PostsProps> = ({ userId }) => {
   if (isLoading) return <div>加载中...</div>;
   if (error) return <div>加载失败</div>;
 
+  //get请求
   const currentPosts = posts
     .filter((post: Post) => post.userId === userId)
     .map((post: Post) => ({

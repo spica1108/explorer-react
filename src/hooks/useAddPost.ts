@@ -1,10 +1,11 @@
+//post请求，新增贴文
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/types";
 
 export const useAddPost = () => {
   const queryClient = useQueryClient();
 
-  const addUserMutation = useMutation({
+  return useMutation({
     mutationFn: async (newPost: {
       name: string;
       title: string;
@@ -20,17 +21,15 @@ export const useAddPost = () => {
       if (!res.ok) throw new Error("创建用户失败");
       return res.json();
     },
-    onSuccess: (newUser) => {
+    onSuccess: (newUser, variables) => {
       //setQueryData更新缓存
       queryClient.setQueryData(["users"], (oldUsers: User[] | undefined) => [
         ...(oldUsers || []),
-        { id: newUser.id, name: newUser.name },
+        { id: newUser.id, name: variables.name },
       ]);
     },
     onError: (error: Error) => {
       console.error("失败:", error.message);
     },
   });
-
-  return addUserMutation;
 };

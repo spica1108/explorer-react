@@ -1,8 +1,9 @@
+//get请求，获取贴文列表
 import { useQuery } from "@tanstack/react-query";
 import type { PostData } from "@/types";
 
 export const usePost = () => {
-  const UserMutation = useQuery({
+  return useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
       const response = await fetch(
@@ -20,6 +21,4 @@ export const usePost = () => {
       }));
     },
   });
-
-  return UserMutation;
 };
