@@ -1,11 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-interface PostData {
-  id: number;
-  userId: number;
-  title: string;
-  body: string;
-}
+import type { PostData } from "@/types";
 
 export const usePost = () => {
   const UserMutation = useQuery({

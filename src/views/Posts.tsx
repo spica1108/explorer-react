@@ -2,19 +2,7 @@ import React from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { usePost } from "@/hooks/usePost";
-
-interface Post {
-  id: number;
-  userId: number;
-  name: string;
-  content: string;
-  isStar?: boolean;
-}
-
-interface PostsProps {
-  //接收父组件传递的userId
-  userId: number;
-}
+import type { Post, PostsProps } from "@/types/post";
 
 export const Posts: React.FC<PostsProps> = ({ userId }) => {
   const [, setLocation] = useLocation();

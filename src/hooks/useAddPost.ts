@@ -1,9 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-export interface User {
-  id: number;
-  name: string;
-}
+import type { User } from "@/types";
 
 export const useAddPost = () => {
   const queryClient = useQueryClient();

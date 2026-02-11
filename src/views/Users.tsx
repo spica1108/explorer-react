@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Posts } from "./Posts";
+import { useAddPost } from "@/hooks/useAddPost";
+import type { User } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAddPost, type User } from "@/hooks/useAddPost";
 
 const AddPostDialog = () => {
   const [newUserName, setNewUserName] = useState("");
@@ -84,22 +84,6 @@ const AddPostDialog = () => {
   );
 };
 
-const useUsers = () => {
-  //获取用户列表
-  return useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/users",
-      );
-      if (!response.ok) {
-        throw new Error("网络请求错误");
-      }
-      return response.json();
-    },
-  });
-};
-
 const Users: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedsearch, setDebouncedSearch] = React.useState(searchTerm);
@@ -115,14 +99,14 @@ const Users: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const { data: users = [], isLoading, error } = useUsers();
+  const { data: users = [], isPending, error } = useAddPost();
 
   const filteredUsers = users.filter((user: User) =>
     user.name.toLowerCase().includes(debouncedsearch.toLowerCase()),
   );
 
   // 加载和错误状态检查
-  if (isLoading) {
+  if (isPending) {
     return <div>加载中...</div>;
   }
 
