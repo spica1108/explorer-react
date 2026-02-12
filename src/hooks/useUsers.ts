@@ -1,4 +1,4 @@
-//get请求，获取用户列表
+//get请求，获取所有用户列表
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@/types";
 

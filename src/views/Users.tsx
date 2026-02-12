@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Posts } from "./Posts";
 import { useUsers } from "@/hooks/useUsers";
 import { useAddPost } from "@/hooks/useAddPost";
-import type { User } from "@/types";
+import type { User } from "@/types/index";
+import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,24 +15,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const AddPostDialog = () => {
-  const [newUserName, setNewUserName] = useState("");
+const UserSchema = z.object({
+  title: z.string().min(2).max(10),
+  body: z.string().min(10).max(50),
+});
+
+const AddPostDialog = ({ userId }: { userId: number }) => {
   const [postTitle, setPostTitle] = useState("");
   const [postBody, setPostBody] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   //post请求
   const mutation = useAddPost();
-
-  // 提交新用户的表单处理
+  // 提交新贴文的表单处理
   const handleAddPost = (e: React.FormEvent) => {
     e.preventDefault();
-    //调用mutate发请求
+
+    const result = UserSchema.safeParse({ title: postTitle, body: postBody });
+    if (!result.success) {
+      setErrors(result.error.flatten().fieldErrors);
+      return;
+    }
+    setErrors({});
     mutation.mutate(
       {
-        name: newUserName,
-        title: postTitle,
-        body: postBody,
+        ...result.data,
+        userId,
       },
       {
         onSuccess: () => {
@@ -56,24 +66,29 @@ const AddPostDialog = () => {
         </DialogHeader>
 
         <form onSubmit={handleAddPost} className="space-y-4 pt-4">
-          <Input
-            placeholder="请输入用户名"
-            value={newUserName}
-            onChange={(e) => setNewUserName(e.target.value)}
-            required
-          />
-          <Input
-            placeholder="请输入标题"
-            value={postTitle}
-            onChange={(e) => setPostTitle(e.target.value)}
-            required
-          />
-          <Input
-            placeholder="请输入内容"
-            value={postBody}
-            onChange={(e) => setPostBody(e.target.value)}
-            required
-          />
+          <div>
+            <Input
+              placeholder="请输入标题"
+              value={postTitle}
+              onChange={(e) => setPostTitle(e.target.value)}
+              required
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">{errors.title[0]}</p>
+            )}
+          </div>
+
+          <div>
+            <Input
+              placeholder="请输入内容"
+              value={postBody}
+              onChange={(e) => setPostBody(e.target.value)}
+              required
+            />
+            {errors.body && (
+              <p className="text-red-500 text-sm mt-1">{errors.body[0]}</p>
+            )}
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button
@@ -100,7 +115,7 @@ const Users: React.FC = () => {
     null,
   );
 
-  // 防抖逻辑
+  //防抖逻辑
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
@@ -133,16 +148,16 @@ const Users: React.FC = () => {
         />
 
         <div className="space-y-2">
-          {filteredUsers.map((users: User) => (
+          {filteredUsers.map((user: User) => (
             <Button
-              key={users.id}
-              variant={selectedUserId === users.id ? "default" : "outline"}
+              key={user.id}
+              variant={selectedUserId === user.id ? "default" : "outline"}
               className="w-full justify-start text-lg mb-3"
               onClick={() => {
-                setSelectedUserId(users.id);
+                setSelectedUserId(user.id);
               }}
             >
-              {users.name}
+              {user.name}
             </Button>
           ))}
         </div>
@@ -153,10 +168,9 @@ const Users: React.FC = () => {
           <div className="flex justify-end gap-3 mb-4">
             <Button onClick={() => setSelectedUserId(1)}>我的收藏</Button>
 
-            <AddPostDialog />
+            {selectedUserId ? <AddPostDialog userId={selectedUserId} /> : null}
           </div>
-          {/* 当前存储的值，点击了ID为5的用户，存的就是5
-          通过 props 传递给子组件 */}
+
           {selectedUserId ? (
             <Posts userId={selectedUserId} />
           ) : (
