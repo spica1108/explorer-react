@@ -1,5 +1,6 @@
 //post请求，新增特定用户的贴文
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Post } from "@/types/index";
 
 export const useAddPost = () => {
   const queryClient = useQueryClient();
@@ -21,11 +22,11 @@ export const useAddPost = () => {
       return res.json();
     },
     onSuccess: (newPost) => {
-      //setQueryData更新缓存
-      queryClient.setQueryData(["posts"], (data) => {
-        return [newPost, ...data];
+      queryClient.setQueryData<Post[]>(["posts", newPost.userId], (oldData) => {
+        return [newPost, ...(oldData ?? [])]; // oldData 如果为空就用空数组
       });
     },
+
     onError: (error: Error) => {
       console.error("失败:", error.message);
     },
